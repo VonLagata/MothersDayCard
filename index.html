@@ -1,0 +1,1091 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=no">
+<title>Happy Mother's Day 💐</title>
+<style>
+  @import url('https://fonts.googleapis.com/css2?family=Playfair+Display:ital,wght@0,400;0,700;1,400;1,700&family=Lato:wght@300;400;700&display=swap');
+
+  :root {
+    --rose:  #e8547a;
+    --blush: #f9c6d3;
+    --cream: #fff8f0;
+    --gold:  #c9933a;
+    --deep:  #3d1a2e;
+  }
+
+  * { margin:0; padding:0; box-sizing:border-box; -webkit-tap-highlight-color:transparent; }
+
+  html, body {
+    width:100%; height:100%; overflow:hidden;
+    background:var(--cream);
+    font-family:'Lato',sans-serif;
+    color:var(--deep);
+    touch-action:manipulation;
+    image-rendering:pixelated;
+  }
+
+  /* ─── SCREENS ─── */
+  .screen {
+    position:fixed; inset:0;
+    display:flex; flex-direction:column;
+    align-items:center; justify-content:center;
+    transition:opacity .55s ease, transform .55s ease;
+  }
+  .screen.hidden { opacity:0; pointer-events:none; transform:scale(.97); }
+
+  .bg-deco {
+    position:absolute; inset:0;
+    pointer-events:none; overflow:hidden; z-index:0;
+  }
+  .screen > *:not(.bg-deco) { position:relative; z-index:1; }
+
+  /* ─── INTRO ─── */
+  #intro {
+    background:linear-gradient(160deg,#fff0f5 0%,#ffe4ee 60%,#ffd6e7 100%);
+    text-align:center; padding:2rem;
+  }
+  .intro-petals { position:absolute; inset:0; overflow:hidden; pointer-events:none; }
+  .petal-bg {
+    position:absolute;
+    animation:floatPetal linear infinite;
+    filter:drop-shadow(0 2px 6px rgba(232,84,122,.4));
+    will-change:transform;
+  }
+  @keyframes floatPetal {
+    0%   { transform:translateY(110vh) rotate(0deg);   opacity:0; }
+    8%   { opacity:1; }
+    88%  { opacity:1; }
+    100% { transform:translateY(-20vh) rotate(400deg); opacity:0; }
+  }
+  .intro-title {
+    font-family:'Playfair Display',serif;
+    font-size:2.8rem; font-style:italic;
+    color:var(--rose); line-height:1.1;
+    text-shadow:0 2px 20px rgba(232,84,122,.2);
+    margin-bottom:.4rem;
+  }
+  .intro-sub {
+    font-size:1rem; color:#a0607a; font-weight:300;
+    letter-spacing:.08em; margin-bottom:2rem;
+  }
+  .pixel-hearts-row {
+    display:flex; gap:8px; justify-content:center;
+    margin-bottom:1.2rem;
+  }
+  .pixel-hearts-row canvas { image-rendering:pixelated; }
+
+  .btn-start {
+    background:var(--rose); color:#fff;
+    border:none; border-radius:4px;
+    padding:.9rem 2.4rem; font-size:1.05rem;
+    font-family:'Lato',sans-serif; font-weight:700;
+    letter-spacing:.06em; cursor:pointer;
+    box-shadow:0 6px 30px rgba(232,84,122,.45), 4px 4px 0 #a0304e;
+    transition:transform .1s, box-shadow .1s;
+  }
+  .btn-start:active {
+    transform:translate(2px,2px);
+    box-shadow:0 3px 14px rgba(232,84,122,.4), 2px 2px 0 #a0304e;
+  }
+
+  /* ─── GAME ─── */
+  #game {
+    background:radial-gradient(ellipse at 50% 30%,#fff0f8 0%,#fce4ef 100%);
+    /* FIX: use gap-less column layout so elements flow around the heart */
+    padding:1rem 1rem;
+    gap:0;
+    justify-content:center;
+  }
+
+  /* FIX: wrapper that keeps all game elements in normal flow */
+  .game-stack {
+    display:flex;
+    flex-direction:column;
+    align-items:center;
+    gap:.6rem;
+    width:100%;
+    /* Reserve space; heart grows via internal canvas scale, not layout push */
+  }
+
+  .game-instruction {
+    font-size:.85rem; color:#a0607a; letter-spacing:.05em;
+    text-transform:uppercase; font-weight:700; text-align:center;
+  }
+  .hearts-bar {
+    display:flex; gap:6px;
+    justify-content:center; flex-wrap:wrap; max-width:300px;
+  }
+  .hp-canvas { image-rendering:pixelated; }
+
+  /* FIX: heart-wrap is now position:relative within the flow.
+     We expand the canvas size visually via transform but keep layout size fixed */
+  .heart-wrap {
+    position:relative;
+    /* Fixed layout box so neighbours don't shift */
+    width:200px; height:200px;
+    cursor:pointer; user-select:none;
+    transform-origin:center;
+    /* No transition here – we animate only the canvas inside */
+    flex-shrink:0;
+  }
+
+  #bigHeartCanvas {
+    width:200px; height:200px;
+    image-rendering:pixelated;
+    display:block;
+    filter:drop-shadow(0 6px 24px rgba(232,84,122,.55));
+    transition:filter .2s, transform .12s cubic-bezier(.34,1.56,.64,1);
+    transform-origin:center;
+  }
+
+  /* progress ring stays around the fixed 200px box */
+  .progress-ring-wrap { position:absolute; inset:-10px; pointer-events:none; }
+  .progress-ring { transform:rotate(-90deg); }
+  .ring-bg   { fill:none; stroke:#f9c6d3; stroke-width:5; }
+  .ring-fill {
+    fill:none; stroke:var(--rose); stroke-width:5;
+    stroke-linecap:square;
+    stroke-dasharray:565; stroke-dashoffset:565;
+    transition:stroke-dashoffset .15s, stroke .3s;
+  }
+
+  .tap-ripple {
+    position:absolute; inset:0;
+    border-radius:4px; pointer-events:none;
+    animation:rippleOut .55s ease-out forwards;
+    background:radial-gradient(circle,rgba(232,84,122,.4) 0%,transparent 70%);
+  }
+  @keyframes rippleOut {
+    from { transform:scale(.3); opacity:1; }
+    to   { transform:scale(2.2); opacity:0; }
+  }
+
+  .tap-num {
+    position:absolute; top:-1.6rem; left:50%; transform:translateX(-50%);
+    font-family:'Playfair Display',serif; font-style:italic;
+    font-size:1.1rem; color:var(--rose);
+    animation:floatUp .9s ease-out forwards;
+    pointer-events:none; white-space:nowrap;
+  }
+  @keyframes floatUp {
+    0%   { opacity:1; transform:translateX(-50%) translateY(0); }
+    100% { opacity:0; transform:translateX(-50%) translateY(-70px); }
+  }
+
+  .tap-count-label {
+    font-family:'Playfair Display',serif;
+    font-size:1rem; color:#c9607a; text-align:center; min-height:1.5rem;
+  }
+
+  /* FIX: tap taps count display */
+  .taps-remaining {
+    font-size:.8rem; color:#b0809a; text-align:center;
+    font-family:'Lato',sans-serif;
+  }
+
+  @keyframes tapShake {
+    0%,100% { rotate:0deg; }
+    25%     { rotate:-6deg; }
+    75%     { rotate:6deg;  }
+  }
+  .tap-shaking { animation:tapShake .22s ease-in-out; }
+
+  /* FIX: explode animation on canvas only, not the wrap */
+  @keyframes explodePulse {
+    0%   { transform:scale(var(--canvas-scale,1)); opacity:1; }
+    30%  { transform:scale(calc(var(--canvas-scale,1)*1.55)); filter:drop-shadow(0 0 55px #e8547a) drop-shadow(0 0 20px #fff); }
+    60%  { transform:scale(calc(var(--canvas-scale,1)*.65)); }
+    100% { transform:scale(0); opacity:0; }
+  }
+  .exploding { animation:explodePulse .75s ease-out forwards !important; transition:none !important; }
+
+  #confetti-canvas { position:fixed; inset:0; pointer-events:none; z-index:100; }
+
+  /* ─── REVEAL ─── */
+  #reveal { background:linear-gradient(170deg,#fff0f8 0%,#fde4ee 100%); padding:0; overflow:hidden; }
+  .reveal-inner {
+    width:100%; height:100%;
+    overflow-y:auto; overflow-x:hidden;
+    padding:3.5rem 1.4rem 3rem;
+    display:flex; flex-direction:column; align-items:center; gap:2rem;
+  }
+  .reveal-title {
+    font-family:'Playfair Display',serif;
+    font-size:2rem; font-style:italic;
+    color:var(--rose); text-align:center;
+    animation:fadeSlideDown .8s ease both;
+  }
+  @keyframes fadeSlideDown {
+    from { opacity:0; transform:translateY(-30px); }
+    to   { opacity:1; transform:translateY(0); }
+  }
+
+  .btn-back {
+    position:absolute; top:1rem; left:1rem; z-index:10;
+    background:rgba(255,255,255,.8);
+    border:2px solid rgba(232,84,122,.3);
+    border-radius:4px;
+    padding:.45rem 1.1rem; font-size:.82rem;
+    font-family:'Lato',sans-serif; font-weight:700;
+    color:var(--rose); cursor:pointer;
+    display:flex; align-items:center; gap:.3rem;
+    backdrop-filter:blur(8px);
+    box-shadow:0 2px 14px rgba(232,84,122,.15), 3px 3px 0 rgba(232,84,122,.2);
+    transition:transform .1s, box-shadow .1s;
+    animation:fadeSlideDown .6s ease both;
+  }
+  .btn-back:active { transform:translate(1px,1px); box-shadow:1px 1px 0 rgba(232,84,122,.2); }
+
+  /* ─── MOM PROFILE HEADER ─── */
+  .mom-profile {
+    width:100%; max-width:360px;
+    background:linear-gradient(135deg,#fff0f5,#ffe4ee);
+    border-radius:12px;
+    padding:1.4rem 1.4rem 1.2rem;
+    box-shadow:0 4px 24px rgba(200,80,110,.15), 4px 4px 0 rgba(232,84,122,.12);
+    display:flex; flex-direction:column; align-items:center; gap:.8rem;
+    opacity:0; transform:translateY(-20px);
+    transition:opacity .6s ease, transform .6s ease;
+  }
+  .mom-profile.visible { opacity:1; transform:translateY(0); }
+
+  .mom-avatar-wrap {
+    position:relative; width:90px; height:90px;
+  }
+  .mom-avatar {
+    width:90px; height:90px; border-radius:50%;
+    object-fit:cover;
+    border:4px solid var(--rose);
+    box-shadow:0 4px 16px rgba(232,84,122,.35), 3px 3px 0 rgba(232,84,122,.2);
+    display:block;
+  }
+  .mom-avatar-placeholder {
+    width:90px; height:90px; border-radius:50%;
+    background:var(--blush);
+    border:4px solid var(--rose);
+    display:flex; align-items:center; justify-content:center;
+    font-size:2.2rem;
+    box-shadow:0 4px 16px rgba(232,84,122,.35);
+  }
+  .mom-avatar-badge {
+    position:absolute; bottom:2px; right:2px;
+    background:var(--rose); border-radius:50%;
+    width:26px; height:26px;
+    display:flex; align-items:center; justify-content:center;
+    font-size:.9rem;
+    box-shadow:0 2px 8px rgba(232,84,122,.5);
+    border:2px solid #fff;
+  }
+
+  .mom-info { text-align:center; }
+  .mom-name {
+    font-family:'Playfair Display',serif;
+    font-size:1.35rem; font-style:italic;
+    color:var(--rose); margin-bottom:.15rem;
+  }
+  .mom-tagline {
+    font-size:.82rem; color:#a0607a; font-weight:300;
+    letter-spacing:.04em; margin-bottom:.6rem;
+  }
+  .mom-details {
+    display:flex; gap:.5rem; flex-wrap:wrap; justify-content:center;
+  }
+  .mom-detail-chip {
+    background:rgba(232,84,122,.1);
+    border:1px solid rgba(232,84,122,.25);
+    border-radius:20px;
+    padding:.25rem .7rem;
+    font-size:.73rem; color:#7a3050;
+    font-weight:700; letter-spacing:.03em;
+  }
+
+  /* PHOTO GRID */
+  .photo-grid {
+    display:grid; grid-template-columns:repeat(2,1fr);
+    gap:.8rem; width:100%; max-width:360px;
+  }
+  .photo-card {
+    border-radius:6px; overflow:hidden;
+    background:var(--blush); position:relative;
+    box-shadow:0 4px 20px rgba(200,80,110,.15), 4px 4px 0 rgba(200,80,110,.15);
+    opacity:0; transform:scale(.7) rotate(var(--r,0deg));
+    transition:opacity .5s ease, transform .5s cubic-bezier(.34,1.56,.64,1);
+    cursor:pointer;
+    aspect-ratio:3/4;
+  }
+  .photo-card.visible { opacity:1; transform:scale(1) rotate(var(--r,0deg)); }
+  .photo-card:active  { transform:scale(.93) rotate(var(--r,0deg)); }
+  .photo-card img {
+    width:100%; height:100%;
+    display:block;
+    object-fit:cover;
+    object-position:center top;
+  }
+  .photo-placeholder {
+    width:100%; height:100%;
+    display:flex; flex-direction:column;
+    align-items:center; justify-content:center; gap:.3rem;
+    color:#d4849c; font-size:.75rem; text-align:center; padding:.5rem;
+  }
+  .photo-placeholder span { font-size:2rem; }
+  .photo-caption {
+    position:absolute; bottom:0; left:0; right:0;
+    background:linear-gradient(transparent,rgba(60,10,30,.55));
+    color:#fff; font-size:.7rem; font-weight:700;
+    padding:.4rem .6rem; text-align:center; letter-spacing:.04em;
+  }
+
+  /* LETTER */
+  .letter-wrap {
+    width:100%; max-width:360px;
+    opacity:0; transform:translateY(40px);
+    transition:opacity .7s ease .3s, transform .7s ease .3s;
+  }
+  .letter-wrap.visible { opacity:1; transform:translateY(0); }
+  .letter-card {
+    background:#fff8f3; border-radius:6px; padding:1.8rem 1.6rem;
+    box-shadow:0 4px 30px rgba(200,80,110,.12), 0 0 0 2px rgba(232,84,122,.08), 4px 4px 0 rgba(232,84,122,.1);
+    position:relative; overflow:hidden;
+  }
+  .letter-card::before {
+    content:'❝'; font-family:'Playfair Display',serif;
+    font-size:5rem; color:rgba(232,84,122,.08);
+    position:absolute; top:-.5rem; left:.5rem; line-height:1;
+  }
+  .letter-to   { font-family:'Playfair Display',serif; font-style:italic; font-size:1.1rem; color:var(--rose); margin-bottom:1rem; }
+  .letter-body { font-size:.98rem; line-height:1.8; color:#4a2035; white-space:pre-wrap; }
+  .letter-sign { font-family:'Playfair Display',serif; font-style:italic; font-size:1.1rem; color:var(--rose); text-align:right; margin-top:1.2rem; }
+  .letter-deco { font-size:1.5rem; text-align:center; margin-top:.8rem; }
+  .reveal-footer { font-size:.75rem; color:#c09ab0; text-align:center; padding-bottom:1rem; }
+
+  /* ─── SPARKLES ─── */
+  .sparkle {
+    position:fixed; pointer-events:none; z-index:150;
+    animation:sparkleFly 1.2s ease-out forwards;
+    image-rendering:pixelated;
+  }
+  @keyframes sparkleFly {
+    0%   { opacity:1; transform:translate(0,0) scale(1); }
+    100% { opacity:0; transform:translate(var(--dx),var(--dy)) scale(.3); }
+  }
+
+  /* ─── LIGHTBOX ─── */
+  #lightbox {
+    position:fixed; inset:0; z-index:300;
+    display:none;
+    align-items:center; justify-content:center;
+    background:rgba(18,2,12,0);
+    transition:background .38s ease;
+  }
+  #lightbox.open { background:rgba(18,2,12,.9); }
+  .lb-inner {
+    position:relative;
+    display:flex; align-items:center; justify-content:center;
+    opacity:0;
+    transform:scale(.5) translateY(50px);
+    transition:transform .42s cubic-bezier(.34,1.45,.64,1), opacity .38s ease;
+    max-width:92vw; max-height:84vh;
+  }
+  #lightbox.open .lb-inner { opacity:1; transform:scale(1) translateY(0); }
+  #lightbox.closing .lb-inner { opacity:0; transform:scale(.5) translateY(50px); transition:transform .3s ease-in, opacity .28s ease-in; }
+  #lightbox.closing { background:rgba(18,2,12,0); transition:background .3s ease-in; }
+  .lb-img-wrap {
+    border-radius:6px; overflow:hidden;
+    box-shadow:0 20px 80px rgba(0,0,0,.75), 6px 6px 0 rgba(0,0,0,.4);
+    max-width:88vw; max-height:75vh; display:flex;
+  }
+  .lb-img-wrap img { display:block; max-width:88vw; max-height:75vh; object-fit:contain; border-radius:6px; }
+  .lb-img-wrap .photo-placeholder { width:220px; height:220px; border-radius:6px; background:#3d1a2e; color:#d4849c; font-size:.82rem; }
+  .lb-close {
+    position:absolute; top:-2.4rem; right:0;
+    width:2rem; height:2rem;
+    background:rgba(255,255,255,.18); border-radius:3px;
+    display:flex; align-items:center; justify-content:center;
+    font-size:1.25rem; color:#fff; cursor:pointer;
+    transition:background .2s, transform .1s;
+    box-shadow:2px 2px 0 rgba(0,0,0,.3);
+  }
+  .lb-close:active { background:rgba(255,255,255,.35); transform:translate(1px,1px); box-shadow:1px 1px 0 rgba(0,0,0,.3); }
+  .lb-caption {
+    position:absolute; bottom:-2rem; left:0; right:0;
+    text-align:center; color:rgba(255,255,255,.7);
+    font-size:.8rem; font-weight:700; letter-spacing:.05em;
+  }
+
+  /* Audio button */
+  .audio-btn {
+    position:fixed; bottom:1.2rem; right:1.2rem; z-index:200;
+    width:44px; height:44px;
+    background:rgba(255,255,255,.85);
+    border:2px solid rgba(232,84,122,.35);
+    border-radius:50%;
+    display:flex; align-items:center; justify-content:center;
+    font-size:1.2rem; cursor:pointer;
+    backdrop-filter:blur(8px);
+    box-shadow:0 4px 16px rgba(232,84,122,.2), 3px 3px 0 rgba(232,84,122,.15);
+    transition:transform .1s, background .2s;
+  }
+  .audio-btn:active { transform:scale(.92); }
+</style>
+</head>
+<body>
+
+<!-- ─── AUDIO (autoplay on first interaction) ─── -->
+<!--
+  ✏️ AUDIO SETUP:
+  1. Download your audio file and name it "bgmusic.mp3" (or change the src below)
+  2. Put it in the same folder as this HTML file
+  3. It will auto-play when the user opens the page (or on first tap if browser blocks autoplay)
+-->
+<audio id="bgAudio" loop>
+  <source src="bgmusic.mp3" type="audio/mpeg">
+</audio>
+
+<!-- Floating audio toggle button -->
+<button class="audio-btn" id="audioBtn" onclick="toggleAudio()" title="Toggle music">🎵</button>
+
+<!-- ═══════ SCREEN 1 — INTRO ═══════ -->
+<div id="intro" class="screen">
+  <div class="bg-deco">
+    <svg width="100%" height="100%" xmlns="http://www.w3.org/2000/svg" preserveAspectRatio="xMidYMid slice">
+      <defs>
+        <pattern id="dots0" width="28" height="28" patternUnits="userSpaceOnUse">
+          <circle cx="14" cy="14" r="1.5" fill="rgba(232,84,122,.13)"/>
+        </pattern>
+      </defs>
+      <rect width="100%" height="100%" fill="url(#dots0)"/>
+      <circle cx="8%"  cy="12%" r="95"  fill="rgba(232,84,122,.07)"/>
+      <circle cx="92%" cy="8%"  r="130" fill="rgba(249,198,211,.2)"/>
+      <circle cx="85%" cy="88%" r="115" fill="rgba(232,84,122,.07)"/>
+      <circle cx="6%"  cy="82%" r="85"  fill="rgba(249,198,211,.16)"/>
+      <path d="M-40 220 Q180 30 430 220"  stroke="rgba(232,84,122,.1)"  stroke-width="2" fill="none"/>
+      <path d="M-40 360 Q210 175 430 360" stroke="rgba(232,84,122,.07)" stroke-width="1.5" fill="none"/>
+    </svg>
+    <div class="intro-petals" id="introPetals"></div>
+  </div>
+
+  <div class="pixel-hearts-row" id="introHeartsRow"></div>
+  <h1 class="intro-title">Happy<br>Mother's Day</h1>
+  <!-- ✏️ Edit subtitle -->
+  <p class="intro-sub">A little something for you, Mama 💕</p>
+  <button class="btn-start" onclick="goToGame()">Open Me !! 🎁</button>
+</div>
+
+<!-- ═══════ SCREEN 2 — GAME ═══════ -->
+<div id="game" class="screen hidden">
+  <div class="bg-deco">
+    <svg width="100%" height="100%" xmlns="http://www.w3.org/2000/svg" preserveAspectRatio="xMidYMid slice">
+      <defs>
+        <radialGradient id="rgGame" cx="50%" cy="50%" r="55%">
+          <stop offset="0%"   stop-color="rgba(232,84,122,.2)"/>
+          <stop offset="100%" stop-color="rgba(232,84,122,0)"/>
+        </radialGradient>
+        <pattern id="dots1" width="24" height="24" patternUnits="userSpaceOnUse">
+          <circle cx="12" cy="12" r="1.2" fill="rgba(232,84,122,.1)"/>
+        </pattern>
+      </defs>
+      <rect width="100%" height="100%" fill="url(#dots1)"/>
+      <rect width="100%" height="100%" fill="url(#rgGame)"/>
+    </svg>
+  </div>
+
+  <!-- FIX: all game elements in a single flex column — nothing overlaps -->
+  <div class="game-stack">
+    <p class="game-instruction">Tap the heart to fill it with love!</p>
+    <div class="hearts-bar" id="heartsBar"></div>
+
+    <div class="heart-wrap" id="heartWrap" onclick="tapHeart(event)">
+      <div class="progress-ring-wrap">
+        <svg class="progress-ring" width="220" height="220" viewBox="0 0 220 220">
+          <circle class="ring-bg"   cx="110" cy="110" r="90"/>
+          <circle class="ring-fill" cx="110" cy="110" r="90" id="ringFill"/>
+        </svg>
+      </div>
+      <canvas id="bigHeartCanvas" width="200" height="200"></canvas>
+    </div>
+
+    <p class="tap-count-label" id="tapLabel">💗 Tap the heart!</p>
+    <!-- FIX: show taps remaining so player knows how many left -->
+    <p class="taps-remaining" id="tapsRemaining"></p>
+  </div>
+</div>
+
+<!-- ═══════ SCREEN 3 — REVEAL ═══════ -->
+<div id="reveal" class="screen hidden">
+  <div class="bg-deco">
+    <svg width="100%" height="100%" xmlns="http://www.w3.org/2000/svg" preserveAspectRatio="xMidYMid slice">
+      <defs>
+        <pattern id="dots2" width="26" height="26" patternUnits="userSpaceOnUse">
+          <circle cx="13" cy="13" r="1.3" fill="rgba(232,84,122,.1)"/>
+        </pattern>
+      </defs>
+      <rect width="100%" height="100%" fill="url(#dots2)"/>
+      <circle cx="0%"   cy="0%"   r="155" fill="rgba(249,198,211,.26)"/>
+      <circle cx="100%" cy="100%" r="185" fill="rgba(232,84,122,.11)"/>
+      <circle cx="92%"  cy="8%"   r="105" fill="rgba(255,182,203,.16)"/>
+    </svg>
+    <div class="intro-petals" id="revealPetals"></div>
+  </div>
+
+  <button class="btn-back" onclick="goBack()">← Start Over</button>
+
+  <div class="reveal-inner">
+    <h2 class="reveal-title">With all my love 💖</h2>
+
+    <!-- ═══ MOM PROFILE HEADER ═══ -->
+    <!--
+      ✏️ MOM PROFILE SETUP:
+      - Replace "mom_profile.jpg" with your mom's photo filename (put it in same folder)
+      - Edit her name, tagline, and detail chips below
+      - Add or remove <span class="mom-detail-chip"> as needed
+    -->
+    <div class="mom-profile" id="momProfile">
+      <div class="mom-avatar-wrap">
+        <!-- ✏️ Replace src with your mom's photo, or remove this line to show emoji placeholder -->
+        <img class="mom-avatar" src="mom_profile.jpg" alt="Mom">
+        <div class="mom-avatar-badge">💖</div>
+      </div>
+      <div class="mom-info">
+        <!-- ✏️ Edit name -->
+        <div class="mom-name">My Super Mom</div>
+        <!-- ✏️ Edit tagline -->
+        <div class="mom-tagline">The heart of our family 🌸</div>
+        <!-- ✏️ Edit detail chips — add/remove as you like -->
+        <div class="mom-details">
+          <span class="mom-detail-chip">Hard Worker 👩🏋🏻‍♀️</span>
+          <span class="mom-detail-chip">Strongest Woman 💪</span>
+          <span class="mom-detail-chip">Our Hero 🌺🦸🏻</span>
+        </div>
+      </div>
+    </div>
+
+    <!-- PHOTO GRID -->
+    <div class="photo-grid" id="photoGrid">
+      <!-- ✏️ PHOTO 1 — To add a photo: replace the photo-placeholder div with <img src="photo1.jpg" alt="Memory 1"> -->
+      <div class="photo-card" style="--r:-2deg" data-caption="Memory 1 ✨" onclick="openLightbox(this)">
+        <img src="photo1.jpg" alt="Memory 1">
+        <div class="photo-caption">Memory 1 ✨</div>
+      </div>
+      <!-- ✏️ PHOTO 2 -->
+      <div class="photo-card" style="--r:3deg" data-caption="Memory 2 🌸" onclick="openLightbox(this)">
+        <img src="photo2.jpg" alt="Memory 2">
+        <div class="photo-caption">Memory 2 🌸</div>
+      </div>
+      <!-- ✏️ PHOTO 3 -->
+      <div class="photo-card" style="--r:2deg" data-caption="Memory 3 💕" onclick="openLightbox(this)">
+        <img src="photo3.jpg" alt="Memory 3">
+        <div class="photo-caption">Memory 3 💕</div>
+      </div>
+      <!-- ✏️ PHOTO 4 -->
+      <div class="photo-card" style="--r:-3deg" data-caption="Memory 4 🌺" onclick="openLightbox(this)">
+        <img src="photo4.jpg" alt="Memory 4">
+        <div class="photo-caption">Memory 4 🌺</div>
+      </div>
+      <!-- ✏️ PHOTO 5 -->
+      <div class="photo-card" style="--r:3deg" data-caption="Memory 5 🌸" onclick="openLightbox(this)">
+        <img src="photo5.jpg" alt="Memory 5">
+        <div class="photo-caption">Memory 5 🌸</div>
+      </div>
+      <!-- ✏️ PHOTO 6 -->
+      <div class="photo-card" style="--r:-3deg" data-caption="Memory 6 🌺" onclick="openLightbox(this)">
+        <img src="photo6.jpg" alt="Memory 6">
+        <div class="photo-caption">Memory 6 🌺</div>
+      </div>
+      <!-- ✏️ PHOTO 7 -->
+      <div class="photo-card" style="--r:3deg" data-caption="Memory 7 🌸" onclick="openLightbox(this)">
+        <img src="photo7.jpg" alt="Memory 7">
+        <div class="photo-caption">Memory 7 🌸</div>
+      </div>
+      <!-- ✏️ PHOTO 8 -->
+      <div class="photo-card" style="--r:-3deg" data-caption="Memory 8 🌺" onclick="openLightbox(this)">
+        <img src="photo8.jpg" alt="Memory 8">
+        <div class="photo-caption">Memory 8 🌺</div>
+      </div>
+    </div>
+
+    <div class="letter-wrap" id="letterWrap">
+      <div class="letter-card">
+        <!-- ✏️ Edit greeting -->
+        <p class="letter-to">Dear Mom,</p>
+        <!-- ✏️ Edit letter body -->
+        <p class="letter-body">Happy Mother's Day po Mama!!! I miss you so much po 🫂🥺!
+
+Ito lang po kaya kong ibagay sayo ngayon dahil malayo ka, gusto ko pong malaman mo na miss na miss at mahal na mahal po kita kahit nasa ibang parte ka po ng mundo. Kaya ito po, gumawa po ako ng website gamit mga natututunan ko sa pag-aaral ko.
+
+Alam ko pong matagal-tagal na din po kita hindi na cha-chat at nakaka usap, and I'm sorry for that, talagang sobrang busy ko lang po ngayong second semester namin. Pero hinding hindi po kita makakalimutan 💖. 
+
+I wanted to take a moment to tell you just how much you mean to me. Every time i feel down and sad, I still look for my mother. I've always wanted your comfort and presence just to feel not alone. I wanted to be strong like you.
+
+There is no other way to possibly repay the sacrifice you're doing for us. All I know is you're the strongest person I know, working tirelessly in another place far away from us and you're still standing no matter what. Wala po kami ngayon kung wala ka po. You have given us more than we asked for.
+
+I want to tell you that don't forget about yourself too mama, don't ever forget to eat right and rest if it's too much, you're still a person mama. Don't worry about us here, we're doing well all because of you. 
+
+I love you more than words can ever say, but I hope this little surprise made you smile. 🌸🥰
+
+I can't wait to see you again!! Love you mama!😘
+
+With every piece of my heart,</p>
+        <!-- ✏️ Edit signature -->
+        <p class="letter-sign">- Von 💕</p>
+        <p class="letter-deco">🌷🌸🌺</p>
+      </div>
+    </div>
+
+    <p class="reveal-footer">Made with love · Happy Mother's Day 🤍</p>
+  </div>
+</div>
+
+<!-- LIGHTBOX -->
+<div id="lightbox" onclick="handleLbBgClick(event)">
+  <div class="lb-inner" id="lbInner">
+    <span class="lb-close" onclick="closeLightbox()">✕</span>
+    <div class="lb-img-wrap" id="lbImgWrap"></div>
+    <div class="lb-caption"  id="lbCaption"></div>
+  </div>
+</div>
+
+<canvas id="confetti-canvas"></canvas>
+
+<script>
+/* ══════════════════════════════════════════
+   PIXEL HEART DRAWING ENGINE
+══════════════════════════════════════════ */
+
+const HEART_PIXELS = [
+  [0,0,1,1,0,0,0,1,1,0,0,0,0],
+  [0,1,1,1,1,0,1,1,1,1,0,0,0],
+  [1,1,1,1,1,1,1,1,1,1,1,0,0],
+  [1,1,1,1,1,1,1,1,1,1,1,0,0],
+  [1,1,1,1,1,1,1,1,1,1,1,0,0],
+  [0,1,1,1,1,1,1,1,1,1,0,0,0],
+  [0,0,1,1,1,1,1,1,1,0,0,0,0],
+  [0,0,0,1,1,1,1,1,0,0,0,0,0],
+  [0,0,0,0,1,1,1,0,0,0,0,0,0],
+  [0,0,0,0,0,1,0,0,0,0,0,0,0],
+];
+const HW = 13, HH = 10;
+
+const PALETTE_EMPTY = {
+  base:      '#c0758a',
+  highlight: '#d4899c',
+  shadow:    '#994466',
+  edge:      '#6b2244',
+};
+const PALETTE_FILL = (pct) => {
+  const r = Math.round(220 + (200-220)*pct);
+  const g = Math.round(80  + (20 -80 )*pct);
+  const b = Math.round(110 + (50 -110)*pct);
+  const base      = `rgb(${r},${g},${b})`;
+  const highlight = `rgb(${Math.min(255,r+40)},${g+20},${b+20})`;
+  const shadow    = `rgb(${r-40},${Math.max(0,g-20)},${Math.max(0,b-20)})`;
+  const edge      = `rgb(${r-70},${Math.max(0,g-40)},${Math.max(0,b-40)})`;
+  return { base, highlight, shadow, edge };
+};
+
+function drawPixelHeart(canvas, pct, px) {
+  const ctx = canvas.getContext('2d');
+  ctx.clearRect(0, 0, canvas.width, canvas.height);
+  const pal = pct <= 0 ? PALETTE_EMPTY : PALETTE_FILL(pct);
+  const offX = Math.floor((canvas.width  - HW * px) / 2);
+  const offY = Math.floor((canvas.height - HH * px) / 2);
+  for (let row = 0; row < HH; row++) {
+    for (let col = 0; col < HW; col++) {
+      if (!HEART_PIXELS[row][col]) continue;
+      const x = offX + col * px;
+      const y = offY + row * px;
+      const above = row > 0    && HEART_PIXELS[row-1]?.[col];
+      const left  = col > 0    && HEART_PIXELS[row][col-1];
+      const below = row < HH-1 && HEART_PIXELS[row+1]?.[col];
+      const right = col < HW-1 && HEART_PIXELS[row][col+1];
+      ctx.fillStyle = pal.base;
+      ctx.fillRect(x, y, px, px);
+      if (!above || !left) {
+        ctx.fillStyle = pal.highlight;
+        if (!above) ctx.fillRect(x, y, px, Math.max(1, Math.floor(px/4)));
+        if (!left)  ctx.fillRect(x, y, Math.max(1, Math.floor(px/4)), px);
+      }
+      if (!below || !right) {
+        ctx.fillStyle = pal.shadow;
+        if (!below) ctx.fillRect(x, y + px - Math.max(1, Math.floor(px/4)), px, Math.max(1, Math.floor(px/4)));
+        if (!right) ctx.fillRect(x + px - Math.max(1, Math.floor(px/4)), y, Math.max(1, Math.floor(px/4)), px);
+      }
+      ctx.fillStyle = pal.edge;
+      if (!above) ctx.fillRect(x, y, px, 1);
+      if (!left)  ctx.fillRect(x, y, 1, px);
+      if (!below) ctx.fillRect(x, y + px - 1, px, 1);
+      if (!right) ctx.fillRect(x + px - 1, y, 1, px);
+    }
+  }
+}
+
+/* ── Intro decorative hearts row ── */
+function buildIntroHearts() {
+  const row = document.getElementById('introHeartsRow');
+  row.innerHTML = '';
+  for (let i = 0; i < 5; i++) {
+    const c = document.createElement('canvas');
+    c.width = 52; c.height = 44;
+    c.className = 'hp-canvas';
+    drawPixelHeart(c, 1, 4);
+    row.appendChild(c);
+  }
+}
+
+/* ── Mini hearts progress bar ── */
+const HP         = 5;
+const TOTAL_TAPS = 20; /* ✏️ Lower = fewer taps to explode (was 30) */
+const MAX_HEART_CANVAS_SCALE = 1.6; /* heart canvas grows, not the layout */
+
+function buildHeartsBar() {
+  const bar = document.getElementById('heartsBar');
+  bar.innerHTML = '';
+  for (let i = 0; i < HP; i++) {
+    const c = document.createElement('canvas');
+    c.width = 44; c.height = 38;
+    c.id = 'hp' + i;
+    c.className = 'hp-canvas';
+    drawPixelHeart(c, 0, 3);
+    bar.appendChild(c);
+  }
+}
+function updateHeartsBar(taps) {
+  const filled = Math.round((taps / TOTAL_TAPS) * HP);
+  for (let i = 0; i < HP; i++) {
+    const c = document.getElementById('hp' + i);
+    if (c) drawPixelHeart(c, i < filled ? 1 : 0, 3);
+  }
+}
+
+/* ── Big game heart (canvas only scales, wrap stays fixed) ── */
+let bigHeartPct = 0;
+function drawBigHeart(pct) {
+  bigHeartPct = pct;
+  const c = document.getElementById('bigHeartCanvas');
+  if (c) drawPixelHeart(c, pct, 14);
+}
+
+/* ══════════════════════════════
+   FLOATING PETALS
+══════════════════════════════ */
+const PETAL_EMOJIS = ['🌸','🌷','🌺','💐','🌼','💮'];
+const petalsContainer = document.getElementById('introPetals');
+
+
+buildIntroHearts();
+
+// Shared helper to populate any petals container
+function spawnPetals(containerId, count) {
+  const container = document.getElementById(containerId);
+  if (!container) return;
+  container.innerHTML = '';
+  for (let i = 0; i < count; i++) {
+    const p = document.createElement('div');
+    p.className   = 'petal-bg';
+    p.textContent = PETAL_EMOJIS[Math.floor(Math.random() * PETAL_EMOJIS.length)];
+    p.style.left              = Math.random() * 100 + 'vw';
+    p.style.bottom            = '-10vh';
+    p.style.animationDuration = (7 + Math.random() * 9) + 's';
+    p.style.animationDelay    = (-Math.random() * 18) + 's';
+    p.style.fontSize          = (1.8 + Math.random() * 2.2) + 'rem';
+    container.appendChild(p);
+  }
+}
+
+spawnPetals('introPetals', 28);
+spawnPetals('revealPetals', 28);
+
+/* ══════════════════════════════
+   AUDIO
+══════════════════════════════ */
+const bgAudio = document.getElementById('bgAudio');
+let audioStarted = false;
+let audioMuted = false;
+
+function startAudio() {
+  if (audioStarted) return;
+  bgAudio.volume = 0.5;
+  bgAudio.play().then(() => {
+    audioStarted = true;
+    document.getElementById('audioBtn').textContent = '🎵';
+  }).catch(() => {
+    // Browser blocked autoplay, will try again on first tap
+  });
+}
+
+function toggleAudio() {
+  if (!audioStarted) {
+    startAudio();
+    return;
+  }
+  audioMuted = !audioMuted;
+  bgAudio.muted = audioMuted;
+  document.getElementById('audioBtn').textContent = audioMuted ? '🔇' : '🎵';
+}
+
+// Try autoplay immediately; if blocked, retry on first user gesture
+startAudio();
+document.addEventListener('click', startAudio, { once: true });
+document.addEventListener('touchstart', startAudio, { once: true });
+
+/* ══════════════════════════════
+   SCREEN NAVIGATION
+══════════════════════════════ */
+function goToGame() {
+  document.getElementById('intro').classList.add('hidden');
+  document.getElementById('game').classList.remove('hidden');
+  initGame();
+}
+function goToReveal() {
+  document.getElementById('game').classList.add('hidden');
+  document.getElementById('reveal').classList.remove('hidden');
+  animateReveal();
+}
+function goBack() {
+  document.querySelectorAll('.photo-card').forEach(c => c.classList.remove('visible'));
+  document.getElementById('letterWrap').classList.remove('visible');
+  document.getElementById('momProfile').classList.remove('visible');
+  document.getElementById('reveal').classList.add('hidden');
+  taps = 0; exploded = false;
+  document.getElementById('intro').classList.remove('hidden');
+}
+
+/* ══════════════════════════════
+   HEART TAP GAME
+══════════════════════════════ */
+let taps = 0, exploded = false;
+const heartWrap    = document.getElementById('heartWrap');
+const ringFill     = document.getElementById('ringFill');
+const tapLabel     = document.getElementById('tapLabel');
+const tapsRemEl    = document.getElementById('tapsRemaining');
+const CIRC         = 2 * Math.PI * 90;
+
+function initGame() {
+  taps = 0; exploded = false;
+
+  // FIX: fully reset the canvas element — remove ALL animation state
+  const c = document.getElementById('bigHeartCanvas');
+  c.classList.remove('exploding', 'tap-shaking');
+  c.style.transform = 'scale(1)';
+  c.style.opacity   = '1';
+  c.style.animation = 'none';
+  // Force reflow so browser acknowledges the reset before re-drawing
+  void c.offsetWidth;
+  c.style.animation = ''; // re-enable normal transitions
+
+  // Reset the wrap too (just in case)
+  heartWrap.classList.remove('exploding', 'tap-shaking');
+  heartWrap.style.transform = '';
+
+  drawBigHeart(0);
+  buildHeartsBar();
+  updateRing();
+  tapLabel.textContent = '💗 Tap the heart!';
+  tapsRemEl.textContent = `${TOTAL_TAPS} taps to go`;
+}
+
+function updateRing() {
+  const pct = taps / TOTAL_TAPS;
+  ringFill.style.strokeDashoffset = CIRC * (1 - pct);
+  const h = Math.round(340 - pct * 30);
+  const s = Math.round(70  + pct * 20);
+  const l = Math.round(60  - pct * 15);
+  ringFill.style.stroke = `hsl(${h},${s}%,${l}%)`;
+}
+
+/* FIX: scale the CANVAS only, not the wrap — elements below don't move */
+function updateHeartSize() {
+  const pct   = taps / TOTAL_TAPS;
+  const scale = 1 + (MAX_HEART_CANVAS_SCALE - 1) * Math.sqrt(pct);
+  const c = document.getElementById('bigHeartCanvas');
+  c.style.transform = `scale(${scale})`;
+  c.style.setProperty('--canvas-scale', scale);
+}
+
+function tapHeart(e) {
+  if (exploded) return;
+  taps = Math.min(taps + 1, TOTAL_TAPS);
+  const pct = taps / TOTAL_TAPS;
+
+  drawBigHeart(pct);
+  updateHeartsBar(taps);
+  updateHeartSize();
+  updateRing();
+
+  // Taps remaining counter
+  const rem = TOTAL_TAPS - taps;
+  tapsRemEl.textContent = rem > 0 ? `${rem} tap${rem !== 1 ? 's' : ''} to go` : '💥 BOOM!';
+
+  // Ripple
+  const ripple = document.createElement('div');
+  ripple.className = 'tap-ripple';
+  heartWrap.appendChild(ripple);
+  ripple.addEventListener('animationend', () => ripple.remove());
+
+  // Floating label
+  const floats     = ['+1 ❤','+ Love','💕','🌸','💖','✨','💓'];
+  const milestones = ['💗 Keep going…','💓 She feels it!','💖 Almost there…','💝 So much love!','🔥 Nearly bursting!'];
+  const num = document.createElement('div');
+  num.className   = 'tap-num';
+  num.textContent = taps % 5 === 0
+    ? milestones[Math.floor(Math.random() * milestones.length)]
+    : floats[Math.floor(Math.random() * floats.length)];
+  heartWrap.appendChild(num);
+  num.addEventListener('animationend', () => num.remove());
+
+  // Shake (on canvas)
+  const c = document.getElementById('bigHeartCanvas');
+  c.classList.remove('tap-shaking');
+  void c.offsetWidth;
+  c.classList.add('tap-shaking');
+  c.addEventListener('animationend', () => c.classList.remove('tap-shaking'), { once:true });
+
+  if      (pct < .25) tapLabel.textContent = '💗 Keep going…';
+  else if (pct < .5)  tapLabel.textContent = '💓 She can feel it!';
+  else if (pct < .75) tapLabel.textContent = '💖 Almost full!';
+  else if (pct < 1)   tapLabel.textContent = '💝 Nearly bursting with love!';
+  else                tapLabel.textContent = '🔥 BOOM! Full of love! 💥';
+
+  spawnSparkles(e);
+
+  if (taps >= TOTAL_TAPS && !exploded) {
+    exploded = true;
+    setTimeout(explodeHeart, 200);
+  }
+}
+
+function spawnSparkles(e) {
+  const rect = heartWrap.getBoundingClientRect();
+  const cx   = rect.left + rect.width  / 2;
+  const cy   = rect.top  + rect.height / 2;
+  for (let i = 0; i < 6; i++) {
+    const s   = document.createElement('canvas');
+    s.width   = 26; s.height = 22;
+    s.className = 'sparkle hp-canvas';
+    drawPixelHeart(s, .8 + Math.random()*.2, 2);
+    const angle = Math.random() * Math.PI * 2;
+    const dist  = 55 + Math.random() * 90;
+    s.style.position = 'fixed';
+    s.style.left     = cx + 'px';
+    s.style.top      = cy + 'px';
+    s.style.setProperty('--dx', Math.cos(angle)*dist + 'px');
+    s.style.setProperty('--dy', Math.sin(angle)*dist + 'px');
+    document.body.appendChild(s);
+    s.addEventListener('animationend', () => s.remove());
+  }
+}
+
+function explodeHeart() {
+  const c = document.getElementById('bigHeartCanvas');
+  c.classList.add('exploding');
+  launchConfetti();
+  setTimeout(goToReveal, 850);
+}
+
+/* ══════════════════════════════
+   CONFETTI
+══════════════════════════════ */
+const confettiCanvas = document.getElementById('confetti-canvas');
+const ctx            = confettiCanvas.getContext('2d');
+let particles = [], animFrame;
+
+function launchConfetti() {
+  confettiCanvas.width  = window.innerWidth;
+  confettiCanvas.height = window.innerHeight;
+  particles = [];
+  const colors = ['#e8547a','#f9c6d3','#ff85a1','#c9933a','#ffd6e7','#ff2d6e','#fff0f5','#ff6b95'];
+  for (let i = 0; i < 220; i++) {
+    particles.push({
+      x: confettiCanvas.width*(.3+Math.random()*.4), y: confettiCanvas.height*.5,
+      vx: (Math.random()-.5)*20, vy: -16-Math.random()*14,
+      color: colors[Math.floor(Math.random()*colors.length)],
+      size: 6+Math.random()*8, gravity: .4+Math.random()*.2, alpha: 1,
+    });
+  }
+  if (animFrame) cancelAnimationFrame(animFrame);
+  drawConfetti();
+}
+function drawConfetti() {
+  ctx.clearRect(0,0,confettiCanvas.width,confettiCanvas.height);
+  let alive = false;
+  for (const p of particles) {
+    p.x+=p.vx; p.y+=p.vy; p.vy+=p.gravity; p.vx*=.99;
+    if (p.y > confettiCanvas.height*.85) p.alpha -= .025;
+    if (p.alpha <= 0) continue;
+    alive = true;
+    ctx.save();
+    ctx.globalAlpha = Math.max(0,p.alpha);
+    ctx.fillStyle   = p.color;
+    ctx.fillRect(p.x, p.y, p.size, p.size);
+    ctx.restore();
+  }
+  if (alive) animFrame = requestAnimationFrame(drawConfetti);
+  else ctx.clearRect(0,0,confettiCanvas.width,confettiCanvas.height);
+}
+
+/* ══════════════════════════════
+   REVEAL ANIMATIONS
+══════════════════════════════ */
+function animateReveal() {
+  // Mom profile animates in first
+  setTimeout(() => {
+    document.getElementById('momProfile').classList.add('visible');
+  }, 100);
+  document.querySelectorAll('.photo-card').forEach((c,i) => {
+    setTimeout(() => c.classList.add('visible'), 400 + i*150);
+  });
+  setTimeout(() => {
+    document.getElementById('letterWrap').classList.add('visible');
+  }, 1100);
+}
+
+/* ══════════════════════════════
+   LIGHTBOX
+══════════════════════════════ */
+const lightbox  = document.getElementById('lightbox');
+const lbImgWrap = document.getElementById('lbImgWrap');
+const lbCaption = document.getElementById('lbCaption');
+let   lbClosing = false;
+
+function openLightbox(card) {
+  if (lbClosing) return;
+  const img     = card.querySelector('img');
+  const caption = card.dataset.caption || '';
+  lbCaption.textContent = caption;
+  lbImgWrap.innerHTML   = '';
+  if (img) {
+    const i = document.createElement('img');
+    i.src = img.src; i.alt = caption;
+    lbImgWrap.appendChild(i);
+  } else {
+    const ph = document.createElement('div');
+    ph.className = 'photo-placeholder';
+    ph.style.cssText = 'width:220px;height:220px;border-radius:6px;background:#3d1a2e;color:#d4849c;font-size:.82rem;display:flex;flex-direction:column;align-items:center;justify-content:center;gap:.4rem;text-align:center;';
+    ph.innerHTML = '<span style="font-size:2.5rem">📷</span>No photo yet';
+    lbImgWrap.appendChild(ph);
+  }
+  lightbox.style.display = 'flex';
+  requestAnimationFrame(() => requestAnimationFrame(() => lightbox.classList.add('open')));
+}
+function closeLightbox() {
+  if (lbClosing) return;
+  lbClosing = true;
+  lightbox.classList.remove('open');
+  lightbox.classList.add('closing');
+  setTimeout(() => {
+    lightbox.classList.remove('closing');
+    lightbox.style.display = 'none';
+    lbImgWrap.innerHTML    = '';
+    lbClosing = false;
+  }, 320);
+}
+function handleLbBgClick(e) {
+  if (e.target === lightbox) closeLightbox();
+}
+
+lightbox.style.display = 'none';
+drawBigHeart(0);
+</script>
+</body>
+</html>
